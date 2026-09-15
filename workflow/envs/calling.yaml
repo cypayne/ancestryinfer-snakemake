@@ -1,0 +1,7 @@
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - python ==2.7.12
+  - ngsutils ==0.5.9
