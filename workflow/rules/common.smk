@@ -6,7 +6,7 @@ import pandas as pd
 from snakemake.utils import validate
 from snakemake.utils import min_version
 
-min_version("5.18.0")
+min_version("8.0")
 container: "continuumio/miniconda3:4.8.2"
 
 ###### Config file and sample sheets #####
@@ -19,7 +19,7 @@ read_list['sample'] = read_list['read1'].str.split('/').str[-1].str.split('_').s
 read_list = read_list.set_index(["sample"],drop=False)
 
 sample_list = list(read_list["sample"].unique())
-print(sample_list)
+print(sample_list, file=sys.stderr)
 
 
 ##### Wildcard constraints #####
@@ -35,6 +35,14 @@ def get_fastq(wildcards):
     """Get fastq files of given sample-unit."""
     fastqs = read_list.loc[(wildcards.sample), ["read1", "read2"]].dropna()
     return {"read1": fastqs.read1, "read2": fastqs.read2}
+
+def get_reads_to_map(wildcards):
+    """Trimmed reads if config trim_reads is True, otherwise raw reads."""
+    if config.get("trim_reads", True):
+        return expand("results/trimmed/{sample}.{r}.fastq.gz",
+                      sample=wildcards.sample, r=[1, 2])
+    fq = get_fastq(wildcards)
+    return [fq["read1"], fq["read2"]]
 
 def get_read_group(wildcards):
     """Denote sample name and platform in read group."""

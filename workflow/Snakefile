@@ -34,6 +34,7 @@ rule all:
         "samtools_to_hmm_complete.txt",
         "all.indivs.hmm.combined_allchrs.filtered_focalchroms",
         expand("ancestry-probs-par{par}_allchrs.tsv",par=[1,2]), 
+        "results/genotypes/ancestry-probs_allchrs.tsv_rec.txt"
 
 ##### Modules #####
 

@@ -25,7 +25,7 @@ rule run_hmm:
         error_prior=config["per_site_error"],
         path=config["program_path"],
     resources:
-        time="72:00:00",
+        runtime="72h",
         mem_mb = 96000,
     threads: 1
     shell:
@@ -51,11 +51,11 @@ rule rchmm_to_ancestry:
     benchmark:
         "results/benchmarks/hmm/rchmm2ancestry_allchrs.bmk",
     params:
-        save_files=0,
+        save_files=config["retain_intermediate_files"],
         focal_chrom=0,
         path=config["program_path"],
     resources:
-        time="10:00:00",
+        runtime="10h",
         mem_mb = 190000,
     threads: 1
     shell:
@@ -79,3 +79,25 @@ rule transpose:
     shell:
         "perl {params.path}/transpose_tsv.pl {input.trans_ancestry1}; "
         "perl {params.path}/transpose_tsv.pl {input.trans_ancestry2} "
+
+
+## genotype ancestry probabilities 
+## homozygous par1 coded as 0, homozygous par2 coded as 2
+rule genotype:
+    input:
+        ancestry1="ancestry-probs-par1_allchrs.tsv",
+        ancestry2="ancestry-probs-par2_allchrs.tsv",
+    output:
+        geno_file="results/genotypes/ancestry-probs_allchrs.tsv_rec.txt",
+    conda:
+        "../envs/hmm.yaml",
+    log:
+        stderr="results/logs/hmm/genotype.stderr",
+        stdout="results/logs/hmm/genotype.stdout",
+    params:
+        path=config["program_path"],
+        posterior_thresh=config["posterior_thresh"],
+    shell:
+        "perl {params.path}/parsetsv_to_genotypes_v2.pl {input.ancestry1} "
+        "{input.ancestry2} {params.posterior_thresh} {output.geno_file} > "
+        "{log.stdout} 2> {log.stderr} "

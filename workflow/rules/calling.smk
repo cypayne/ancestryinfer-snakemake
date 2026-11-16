@@ -48,14 +48,14 @@ rule samtools_to_hmm:
         "results/benchmarks/variant_calling/{sample}_allchrs.bmk",
     params:
         read_length=config["read_length"],
-        save_files=0,
+        save_files=config["retain_intermediate_files"],
         max_align=config["max_alignments"],
         focal_chrom=0,
         rec_M_per_bp=config["rec_M_per_bp"],
         path=config["program_path"],
         quality=30,
     resources:
-        time="30:00:00",
+        runtime="30h",
         mem_mb = 190000,
     threads: 1
     shell:
