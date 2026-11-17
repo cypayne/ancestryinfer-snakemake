@@ -21,12 +21,19 @@ read_list = read_list.set_index(["sample"],drop=False)
 sample_list = list(read_list["sample"].unique())
 print(sample_list, file=sys.stderr)
 
+# set global variables
+og_genome1 = config["genome1"]
+og_genome2 = config["genome2"]
+genome1 = config["genome1"]+"_chr-renamed"
+genome2 = config["genome2"]+"_chr-renamed"
+aims = f"results/ref/all_AIMs_{genome1}_{genome2}"
 
 ##### Wildcard constraints #####
 
 wildcard_constraints:
     sample="|".join(sample_list),
-    read_list="|".join(read_list)
+    read_list="|".join(read_list),
+    genome="|".join(re.escape(g) for g in [genome1, genome2]),
 
 
 ##### Helper functions #####
@@ -50,12 +57,12 @@ def get_read_group(wildcards):
         sample=wildcards.sample,
     )
 
-def get_subset_read_list(wildcards):
-    """Return a list of id files, each containing one sample: """
-    """trimmed_fq1_path\ttrimmed_fq2_path"""
-    with open("read_list.txt."+wildcards.sample, 'w') as f:
-        f.write(wildcards.sample+".1.fastq.gz\t"+wildcards.sample+".2.fastq.gz")
-    return {"read_list": expand("read_list.txt.{sample}", sample=wildcards.sample)}
+#def get_subset_read_list(wildcards):
+#    """Return a list of id files, each containing one sample: """
+#    """trimmed_fq1_path\ttrimmed_fq2_path"""
+#    with open("read_list.txt."+wildcards.sample, 'w') as f:
+#        f.write(wildcards.sample+".1.fastq.gz\t"+wildcards.sample+".2.fastq.gz")
+#    return {"read_list": expand("read_list.txt.{sample}", sample=wildcards.sample)}
 
 def get_sample_bams(wildcards):
     """Get all aligned reads of given sample."""
@@ -66,17 +73,17 @@ def get_sample_bams(wildcards):
     )
 
 ## write list of parental files to a hybrid list file
-def generate_parent_list(samples):
-    with open("HMM.parental.files.list_allchrs", 'w') as f:
-        for s in samples:
-            f.write(s+".1.fastq.gz_allchrs.sam.hmm.combinedparental.format\n")
-        return "HMM.parental.files.list_allchrs" 
+#def generate_parent_list(samples):
+#    with open("HMM.parental.files.list_allchrs", 'w') as f:
+#        for s in samples:
+#            f.write(s+".1.fastq.gz_allchrs.sam.hmm.combinedparental.format\n")
+#        return "HMM.parental.files.list_allchrs" 
 
 ## write list of hybrid files to a hybrid list file
-def generate_hybrid_list(samples):
-    with open("HMM.hybrid.files.list_allchrs", 'w') as f:
-        for s in samples:
-            f.write(s+".1.fastq.gz_allchrs.sam.hmm.combined.pass.formatted\n")
-    return "HMM.hybrid.files.list_allchrs" 
+#def generate_hybrid_list(samples):
+#    with open("HMM.hybrid.files.list_allchrs", 'w') as f:
+#        for s in samples:
+#            f.write(s+".1.fastq.gz_allchrs.sam.hmm.combined.pass.formatted\n")
+#    return "HMM.hybrid.files.list_allchrs" 
 
 

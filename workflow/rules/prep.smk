@@ -6,11 +6,12 @@ rule rename_chrom_names:
         og_g1 = og_genome1,
         og_g2 = og_genome2,
     output: 
-        renamed_g1 = og_genome1+"_chr-renamed",
-        renamed_g2 = og_genome2+"_chr-renamed",
+        renamed_g1 = f"results/ref/{og_genome1}_chr-renamed",
+        renamed_g2 = f"results/ref/{og_genome2}_chr-renamed",
     shell:
         "perl -p -e 's/_/-/g' {input.og_g1} > {output.renamed_g1} ; "
         "perl -p -e 's/_/-/g' {input.og_g2} > {output.renamed_g2} "
+
 
 # reformat the AIMs file for downstream compatibility
 # make "current_aims_file"
@@ -18,11 +19,11 @@ rule reformat_aims:
     input:
         provided_aims=config["provide_AIMs"],
     output:
-        aims = "all_AIMs_"+genome1+"_"+genome2,
-        current_aims_file="current_aims_file",
-        formatted = aims+"_formatted",
-        aims_bed = aims+".mod",
-        aims_truebed=aims+".mod.bed",
+        aims = f"results/ref/all_AIMs_{genome1}_{genome2}",
+        current_aims_file = "results/ref/current_aims_file",
+        formatted = f"{aims}_formatted",
+        aims_bed = f"{aims}.mod",
+        aims_truebed = f"{aims}.mod.bed",
     shell:
         "cp {input.provided_aims} {output.aims} ; "
         "echo {output.aims} > {output.current_aims_file} ; "

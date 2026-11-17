@@ -6,7 +6,7 @@ rule map_reads:
         reads=get_reads_to_map,
         idx=rules.bwa_index.output,
     output:
-        "{genome}_{sample}.bam",
+        "results/mapping/{sample}/{genome}_{sample}.bam",
     log:
         "results/logs/map_reads/{genome}_genome/{sample}.log",
     #benchmark:

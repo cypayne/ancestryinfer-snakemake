@@ -1,0 +1,40 @@
+# Requires: snakemake-executor-plugin-slurm
+#   (conda install -c bioconda snakemake-executor-plugin-slurm
+#    or pip install snakemake-executor-plugin-slurm)
+# Usage: snakemake --profile hpcc-profiles/slurm/sherlock
+#
+# The plugin builds the sbatch command, tracks job status via sacct,
+# and cancels jobs on Ctrl-C itself, so no status/cancel scripts are needed.
+# SLURM logs go to .snakemake/slurm_logs/rule_<rule>/<wildcards>/<jobid>.log
+
+executor: slurm
+software-deployment-method: conda
+
+jobs: 1200
+max-jobs-per-second: 10
+local-cores: 1
+latency-wait: 60
+restart-times: 0
+keep-going: True
+rerun-incomplete: True
+printshellcmds: True
+slurm-keep-successful-logs: True 
+
+# runtime is in minutes. 
+# mem_mb -> sbatch --mem, threads -> --cpus-per-task.
+default-resources:
+  slurm_account: "schumer" 
+  slurm_partition: "schumer"
+  runtime: "8h"
+  mem_mb: 4800
+#  slurm_extra: "'--exclude=node[01-10,31-32]'"
+
+set-threads:
+  map_reads: 20
+  trim_reads_pe: 5
+
+# several rules declare their own mem_mb/runtime in workflow/rules/*.smk.
+set-resources:
+  trim_reads_pe:
+    mem_mb: 23500
+    runtime: "2d"

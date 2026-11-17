@@ -1,0 +1,29 @@
+genome1: Omykiss_Arlee_genome.short-chr-names.fasta
+genome2: s0023_Oclarkii-henshawii-ByDayCreek_Arlee-trout.pseudogenome.formatted.fasta
+
+read_type: PE
+read_list: read_list.txt
+read_length: 150
+
+prop_genome_genome1_parent: 0.5
+number_indiv_per_job: 1
+program_path: /home/cpayne/programs/ancestryinfer_July2022/
+provide_AIMs: Omykiss-Arlee_s0023-Oclarkii-henshawii-ByDayCreek_candidate_AIMs_filtered.txt 
+provide_counts: omykiss-Arlee_oclarkii-s0023_allele_counts.txt 
+
+per_site_error: 0.05
+gen_initial_admix: 30
+focal_chrom_list: 
+rec_M_per_bp: 0.000000012
+max_alignments: 2000000
+posterior_thresh: 0.9
+
+retain_intermediate_files: 0
+
+## for trimming reads, set parameters
+params:
+    fastp:
+        # See fastp manual for adding additional options, e.g. for adapter trimming.
+        - " --adapter_sequence=AGATCGGAAGAGCACACGTCTGAACTCCAGTCA"
+        - " --adapter_sequence_r2=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT"
+        - " --detect_adapter_for_pe --cut_right --cut_right_window_size 4 --cut_right_mean_quality 20 "
