@@ -1,4 +1,26 @@
 
+# check read count per sample before anything
+# this performs a rough check that fastqs have
+# a minimum number of reads, outputs new read_list
+# with files that meet this requirement
+rule min_read_count_check:
+    input:
+        read_list = config["read_list"],
+    output:
+        read_counts = "results/read_counts/read_counts.1.txt",
+        new_read_list = "results/read_counts/new_read_list.txt",
+    params:
+        min_rc = config["min_read_count"],
+    shell:
+        r"""
+        awk '{{print $1}}' {input.read_list} | while IFS= read -r file; do
+            ls -lL "$file" | awk '{{printf("%s\t%s\n", $NF, $5/1000.0)}}'
+        done > {output.read_counts}
+        awk -F'\t' -v min={params.min_rc} 'NR==FNR {{ if ($2 > min) keep[$1] = 1; next }} ($1 in keep)' \
+            {output.read_counts} {input.read_list} > {output.new_read_list}
+        """
+
+
 # rename chromosome names to replace underscores with dashes
 # unfortunately cannot have underscores in chrom names
 rule rename_chrom_names:

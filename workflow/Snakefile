@@ -18,6 +18,7 @@ localrules: rename_chrom_names, reformat_aims, rename_sam, check_samtools_to_hmm
 
 rule all:
     input:
+        "results/read_counts/new_read_list.txt",
         expand("results/ref/{og_genome}_chr-renamed",og_genome=[og_genome1,og_genome2]),
         f"{aims}.mod.bed",
         expand("results/calling/{sample}/{sample}.1.fastq.gz_allchrs.sam.hmm.combinedparental.format",sample=sample_list),
@@ -25,7 +26,8 @@ rule all:
         #"results/hmm/samtools_to_hmm_complete.txt",
         "results/hmm/all.indivs.hmm.combined_allchrs.filtered_focalchroms",
         expand("results/hmm/ancestry-probs-par{par}_allchrs.tsv",par=[1,2]), 
-        "results/genotypes/ancestry-probs_allchrs.tsv_rec.txt"
+        "results/genotypes/ancestry-probs_allchrs.tsv_rec.txt",
+        "results/genotypes/pass-miss-threshold.ancestry-probs_allchrs.tsv_rec.txt"
 
 ##### Modules #####
 

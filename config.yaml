@@ -2,8 +2,10 @@ genome1: xbir-COAC-16-VIII-22-M_v2023.1.fa
 genome2: xmal-CHIC-XI-20-M_v2023.2.fa 
 
 read_type: PE
-read_list: read_list_ex.txt 
+read_list: TLMC_combined_read_list_relpaths 
 read_length: 150
+min_read_count: 1000 
+min_percent_missing_calls: 20
 
 prop_genome_genome1_parent: 0.5
 number_indiv_per_job: 1
