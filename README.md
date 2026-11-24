@@ -48,6 +48,8 @@ Edit `config.yaml`. The main settings:
 | Key | Meaning |
 |---|---|
 | `read_length` | length of reads, minimum distance (bp) between sites kept for the HMM |
+| `min_read_count` | rough read-depth check: read 1 FASTQs smaller than this many kilobytes are left out of `results/read_counts/new_read_list.txt` |
+| `min_percent_missing_calls` | samples with this percent (0–100) or more `NA` genotypes are left out of the filtered genotype file |
 | `prop_genome_genome1_parent` | prior proportion of the genome from parent 1 |
 | `gen_initial_admix` | prior number of generations since admixture |
 | `per_site_error` | per-site error rate passed to Ancestry_HMM |
@@ -73,6 +75,22 @@ snakemake --configfile config.yaml --profile hpcc-profiles/slurm/sherlock
 
 Cluster profiles are in `hpcc-profiles/slurm/`. `sherlock` uses the SLURM executor plugin and is the one to copy for a new cluster. Set `slurm_account`, `slurm_partition`, and the default `runtime`/`mem_mb` there. Memory and runtime for individual rules are set in `workflow/rules/*.smk`.
 
+### Optional: drop samples with too few reads first
+
+Samples whose read 1 FASTQ is smaller than `min_read_count` KB usually have too little data to infer ancestry. To leave them out before mapping:
+
+1. Run only the read check:
+   ```bash
+   snakemake --configfile config.yaml min_read_count_check
+   ```
+   This writes `results/read_counts/read_counts.1.txt` (read 1 FASTQ size in KB for each sample) and `results/read_counts/new_read_list.txt` (the read list with only the samples that pass).
+2. Check which samples were dropped, then copy the new list out of `results/`:
+   ```bash
+   cp results/read_counts/new_read_list.txt read_list_passing.txt
+   ```
+   Don't point `read_list` at `results/read_counts/new_read_list.txt` itself. That file is the output of the read check, so the rule would read and write the same file, and Snakemake will refuse to run.
+3. Set `read_list: read_list_passing.txt` in your config (or add `--config read_list=read_list_passing.txt` to the command) and run the full workflow as usual.
+
 Tips:
 - **Run Snakemake itself in a small, long job** so that it isn't killed on the login node:
   ```bash
@@ -83,21 +101,35 @@ Tips:
 - **Wrapper rules exit right away without output:** this happens when Snakemake's source cache is on a node-local disk (for example `/tmp`), because compute nodes can't see it. Point the cache at shared storage with `export XDG_CACHE_HOME=/scratch/users/$USER/.cache` before running Snakemake. If you run Snakemake in a driver job as above, put the `export` inside `--wrap`.
 - **SLURM job logs** are in `.snakemake/slurm_logs/`. The rules' logs are in `results/logs/`.
 
+### Cleaning up intermediate files
+
+Once `samtools_to_hmm` has finished for every sample, you can free up space with:
+
+```bash
+snakemake --configfile config.yaml cleanup
+```
+
+This deletes everything in `results/calling/{sample}/` except the two files the HMM step reads (`*.sam.hmm.combined.pass.formatted` and `*.sam.hmm.combinedparental.format`), so you can still rerun the HMM and later steps. Deleted files are listed in `results/logs/cleanup/cleanup.log`. It does not run as part of the default target.
+
 ## Outputs
 
 ```
 results/
+├── read_counts/ read 1 FASTQ sizes, read list of samples passing min_read_count
 ├── ref/         renamed genomes, bwa/fai indexes, reformatted AIMs
 ├── trimmed/     trimmed reads (if trim_reads: True)
 ├── mapping/     {sample}/ BAMs against each parent
 ├── calling/     {sample}/ filtered BAMs, VCFs, per-site allele counts
 ├── hmm/         combined HMM input, posteriors, ancestry-probs-par{1,2}_allchrs.tsv
-├── genotypes/   ancestry-probs_allchrs.tsv_rec.txt
+├── genotypes/   called genotypes, missingness per sample, filtered genotypes
 └── logs/, benchmarks/
 ```
 
 - **`ancestry-probs-par{1,2}_allchrs.tsv`:** posterior probability that each site is homozygous for parent 1 or parent 2 ancestry. Samples are rows, sites (`chrom:pos`) are columns.
 - **`ancestry-probs_allchrs.tsv_rec.txt`:** called genotypes. `0` = homozygous parent 1, `1` = heterozygous, `2` = homozygous parent 2, `NA` = below `posterior_thresh`.
+- **`missing_call_counts.txt`:** one line per sample with the sample name, number of `NA` genotypes, and percent `NA`.
+- **`pass-miss-threshold.ancestry-probs_allchrs.tsv_rec.txt`:** the called genotypes, keeping only samples with less than `min_percent_missing_calls` percent `NA`.
+- **`read_counts/new_read_list.txt`:** the read list, keeping only samples whose read 1 FASTQ is larger than `min_read_count` KB. This is not used to choose which samples run unless you swap it in (see "Optional: drop samples with too few reads first" above).
 
 ## Citation
 

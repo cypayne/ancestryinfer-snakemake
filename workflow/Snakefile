@@ -1,20 +1,7 @@
 include: "rules/common.smk"
 
 ## rules to be run locally
-localrules: rename_chrom_names, reformat_aims, rename_sam, check_samtools_to_hmm_output
-
-# XXX couldn't figure out a way to use the global tag 
-# variable without forcing some functions to have the
-# tag in both the input and output file names RIP
-# set the global tag value
-# depends on whether focal chroms are provided in config 
-#if config["focal_chrom_list"]:
-#    with open(config["focal_chrom_list"]) as chr_file:
-#        for chrnames in chr_file:
-#            chrnames = chrnames.strip()
-#            tag += f"_{chrnames}"  
-#else:
-#    tag="_allchrs"
+localrules: min_read_count_check, rename_chrom_names, reformat_aims, rename_sam, check_samtools_to_hmm_output, missing_calls, cleanup
 
 rule all:
     input:
@@ -23,11 +10,11 @@ rule all:
         f"{aims}.mod.bed",
         expand("results/calling/{sample}/{sample}.1.fastq.gz_allchrs.sam.hmm.combinedparental.format",sample=sample_list),
         expand("results/calling/{sample}/{sample}.1.fastq.gz_allchrs.sam.hmm.combined.pass.formatted",sample=sample_list),
-        #"results/hmm/samtools_to_hmm_complete.txt",
         "results/hmm/all.indivs.hmm.combined_allchrs.filtered_focalchroms",
         expand("results/hmm/ancestry-probs-par{par}_allchrs.tsv",par=[1,2]), 
         "results/genotypes/ancestry-probs_allchrs.tsv_rec.txt",
-        "results/genotypes/pass-miss-threshold.ancestry-probs_allchrs.tsv_rec.txt"
+        "results/genotypes/pass-miss-threshold.ancestry-probs_allchrs.tsv_rec.txt",
+        "results/hmm/hybrid_index_file"
 
 ##### Modules #####
 

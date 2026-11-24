@@ -4,6 +4,8 @@ genome2: s0023_Oclarkii-henshawii-ByDayCreek_Arlee-trout.pseudogenome.formatted.
 read_type: PE
 read_list: read_list.txt
 read_length: 150
+min_read_count: 1000 
+min_percent_missing_calls: 20
 
 prop_genome_genome1_parent: 0.5
 number_indiv_per_job: 1
